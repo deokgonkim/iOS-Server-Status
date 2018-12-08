@@ -7,12 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h>
 #import "Server_Status+CoreDataModel.h"
 
 @interface DetailViewController : UIViewController
 
-@property (strong, nonatomic) Event *detailItem;
+@property (strong, nonatomic) Server *detailItem;
 @property (weak, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
+@property (weak, nonatomic) IBOutlet WKWebView *webView;
 
 @end
 
