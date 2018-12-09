@@ -9,10 +9,17 @@
 #import <UIKit/UIKit.h>
 #import <CoreData/CoreData.h>
 #import "Server_Status+CoreDataModel.h"
+#import "ServerChecker.h"
 
 @class DetailViewController;
 
-@interface MasterViewController : UITableViewController <NSFetchedResultsControllerDelegate>
+@interface MasterViewController : UITableViewController <NSFetchedResultsControllerDelegate> {
+    UIRefreshControl *refreshControl;
+    
+    NSMutableData *_responseData;
+}
+
+
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 

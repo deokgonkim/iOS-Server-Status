@@ -23,6 +23,22 @@
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(showAddDialog:)];
     self.navigationItem.rightBarButtonItem = addButton;
     self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
+    
+    
+    refreshControl = [[UIRefreshControl alloc]init];
+    [refreshControl addTarget:self action:@selector(refreshTable) forControlEvents:UIControlEventValueChanged];
+    
+    if (@available(iOS 10.0, *)) {
+        self.tableView.refreshControl = refreshControl;
+    } else {
+        [self.tableView addSubview:refreshControl];
+    }
+    
+    NSArray *servers = [self.fetchedResultsController fetchedObjects];
+    for(NSUInteger i = 0; i < servers.count; i++) {
+        Server *server = [servers objectAtIndex:i];
+        server.status = @"-";
+    }
 }
 
 
@@ -51,7 +67,7 @@
         Server *newServer = [[Server alloc] initWithContext:context];
         
         newServer.name = name.text;
-        newServer.url = url.text;
+        newServer.statusUrl = url.text;
         newServer.timestamp = [NSDate date];
         
         
@@ -87,6 +103,24 @@
     }];
 }
 
+- (void)refreshTable {
+    
+    NSArray *objects = [self.fetchedResultsController fetchedObjects];
+    
+    for (NSUInteger i = 0; i < objects.count; i++) {
+        Server* server = [objects objectAtIndex:i];
+        NSLog([NSString stringWithFormat:@"Checking %@ - %@", server.name, server.statusUrl]);
+        
+        ServerChecker *checker = [[ServerChecker alloc] initWithServer:server];
+        
+        [checker statusCheck:^(Server * _Nonnull server) {
+            NSLog([NSString stringWithFormat:@"Status checked - %@ - %@", server.name, server.statusUrl]);
+            [self.tableView reloadData];
+        }];
+    }
+    
+    [refreshControl endRefreshing];
+}
 
 #pragma mark - Segues
 
@@ -147,6 +181,7 @@
 
 - (void)configureCell:(UITableViewCell *)cell withServer:(Server *)server {
     cell.textLabel.text = server.name;
+    cell.detailTextLabel.text = server.status;
 }
 
 

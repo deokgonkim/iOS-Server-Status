@@ -18,8 +18,7 @@
     // Update the user interface for the detail item.
     if (self.detailItem) {
         self.detailDescriptionLabel.text = self.detailItem.name;
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.detailItem.url]];
-        //NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"https://www.dgkim.net/wordpress/"]];
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:self.detailItem.statusUrl]];
         [self.webView loadRequest:request];
     }
 }
