@@ -14,12 +14,15 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^ResponseBlock)(Server *server);
 
 @interface ServerChecker : NSObject {
-    Server *_server;
+    //Server *_server;
     
-    NSMutableData *_responseData;
+    NSMutableData *responseData;
+    NSString *serverDateTime;
+    
+    ResponseBlock responseBlock;
 }
 
-@property (nonatomic, strong)ResponseBlock responseBlock;
+@property (nonatomic, strong) Server *server;
 
 - (id)initWithServer:(Server *)server;
 

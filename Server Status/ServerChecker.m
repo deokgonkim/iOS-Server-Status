@@ -21,7 +21,7 @@
 
 - (void)statusCheck:(ResponseBlock)handler{
     
-    _responseBlock = handler;
+    responseBlock = handler;
     
     // Create the request.
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:_server.statusUrl]];
@@ -38,12 +38,18 @@
     // so that we can append data to it in the didReceiveData method
     // Furthermore, this method is called each time there is a redirect so reinitializing it
     // also serves to clear it
-    _responseData = [[NSMutableData alloc] init];
+    responseData = [[NSMutableData alloc] init];
     
-    NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+    
+    NSInteger statusCode = [httpResponse statusCode];
+    
+    NSDictionary *headers = [httpResponse allHeaderFields];
     
     if (statusCode != 200) {
-        _server.status = [NSString stringWithFormat:@"Error %d", statusCode];
+        _server.status = [NSString stringWithFormat:@"Error %ld", statusCode];
+    } else {
+        _server.status = [NSString stringWithFormat:@"Ok - %@", [headers objectForKey:@"Date"]];
     }
 }
 
@@ -54,13 +60,15 @@
     
     NSString* requestedUrl = [[connection currentRequest] URL].absoluteString;
     
+    /*
     if (![_server.status containsString:@"Error"]) {
         _server.status = @"Ok";
     }
+     */
     
-    if (self.responseBlock) {
-        self.responseBlock(_server);
-        self.responseBlock = nil;
+    if (responseBlock) {
+        responseBlock(_server);
+        responseBlock = nil;
     }
 }
 

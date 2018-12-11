@@ -28,6 +28,12 @@
     refreshControl = [[UIRefreshControl alloc]init];
     [refreshControl addTarget:self action:@selector(refreshTable) forControlEvents:UIControlEventValueChanged];
     
+    UILongPressGestureRecognizer *lpgr = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress:)];
+    lpgr.minimumPressDuration = 2.0;
+    //lpgr.delegate = self;
+    [self.tableView addGestureRecognizer:lpgr];
+    
+    
     if (@available(iOS 10.0, *)) {
         self.tableView.refreshControl = refreshControl;
     } else {
@@ -48,10 +54,19 @@
 }
 
 
-- (void)insertNewObject:(id)sender {
+- (void)handleLongPress:(UILongPressGestureRecognizer *)gestureRecognizer {
     
     
-    
+    if (gestureRecognizer.state == UIGestureRecognizerStateBegan) {
+        NSLog(@"Long press detected");
+        
+        CGPoint p = [gestureRecognizer locationInView:self.tableView];
+        
+        NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:p];
+        NSLog(@"  indexPath : %@", indexPath);
+        
+        [self showEditDialog:indexPath];
+    }
     
 }
 
@@ -97,6 +112,57 @@
     [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
         textField.placeholder = @"https://server/status-view";
     }];
+    
+    [self presentViewController:alert animated:YES completion:^{
+        nil;
+    }];
+}
+
+- (void)showEditDialog:(NSIndexPath *)indexPath {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Edit Server" message:@"Edit Server Info" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction* ok = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        
+        NSManagedObjectContext *context = [self.fetchedResultsController managedObjectContext];
+        
+        
+        Server *server = [self.fetchedResultsController objectAtIndexPath:indexPath];
+        
+        server.name = [alert textFields][0].text;
+        server.statusUrl = [alert textFields][1].text;
+        
+        
+        // Save the context.
+        NSError *error = nil;
+        if (![context save:&error]) {
+            // Replace this implementation with code to handle the error appropriately.
+            // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+            NSLog(@"Unresolved error %@, %@", error, error.userInfo);
+            abort();
+        }
+        
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    UIAlertAction* cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+        [alert dismissViewControllerAnimated:YES completion:nil];
+    }];
+    
+    [alert addAction:ok];
+    [alert addAction:cancel];
+    
+    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+        textField.placeholder = @"New Server";
+    }];
+    
+    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+        textField.placeholder = @"https://server/status-view";
+    }];
+    
+    Server *server = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    
+    [alert textFields][0].text = server.name;
+    [alert textFields][1].text = server.statusUrl;
     
     [self presentViewController:alert animated:YES completion:^{
         nil;
