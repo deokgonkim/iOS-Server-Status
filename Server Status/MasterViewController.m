@@ -6,6 +6,8 @@
 //  Copyright © 2018 Deokgon Kim. All rights reserved.
 //
 
+#import <UserNotifications/UserNotifications.h>
+
 #import "MasterViewController.h"
 #import "DetailViewController.h"
 
@@ -45,6 +47,14 @@
         Server *server = [servers objectAtIndex:i];
         server.status = @"-";
     }
+    
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center requestAuthorizationWithOptions:(UNAuthorizationOptionBadge | UNAuthorizationOptionSound | UNAuthorizationOptionAlert)
+                          completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                              if (!error) {
+                                  NSLog(@"request authorization succeeded!");
+                              }
+                          }];
 }
 
 
@@ -185,7 +195,33 @@
         }];
     }
     
+    [self registerLocalNotification];
+    
     [refreshControl endRefreshing];
+}
+
+- (void)registerLocalNotification {
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = @"Notification title";
+    content.body = @"Notification body";
+    content.sound = [UNNotificationSound defaultSound];
+    
+    // 4. update application icon badge number
+    content.badge = [NSNumber numberWithInteger:([UIApplication sharedApplication].applicationIconBadgeNumber + 1)];
+    // Deliver the notification in five seconds.
+    UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger
+                                                  triggerWithTimeInterval:10.f
+                                                  repeats:NO];
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:@"TenSecond"
+                                                                          content:content
+                                                                          trigger:trigger];
+    /// 3. schedule localNotification
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+        if (!error) {
+            NSLog(@"add NotificationRequest succeeded!");
+        }
+    }];
 }
 
 #pragma mark - Segues

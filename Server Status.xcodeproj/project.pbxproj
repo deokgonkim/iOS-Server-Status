@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5E1EC21921BBC3FA00EBCF62 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E1EC21821BBC3FA00EBCF62 /* WebKit.framework */; };
 		5E31878F21BD0EE500941FE8 /* ServerChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 5E31878E21BD0EE500941FE8 /* ServerChecker.m */; };
+		5E525AFA21C7F69C00720E9F /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5E525AF921C7F69C00720E9F /* UserNotifications.framework */; };
 		5EF31BF821B8123E00D2A06F /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EF31BF721B8123E00D2A06F /* AppDelegate.m */; };
 		5EF31BFB21B8123E00D2A06F /* Server_Status.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5EF31BF921B8123E00D2A06F /* Server_Status.xcdatamodeld */; };
 		5EF31BFE21B8123E00D2A06F /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5EF31BFD21B8123E00D2A06F /* MasterViewController.m */; };
@@ -42,6 +43,7 @@
 		5E1EC21821BBC3FA00EBCF62 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		5E31878D21BD0EE500941FE8 /* ServerChecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ServerChecker.h; sourceTree = "<group>"; };
 		5E31878E21BD0EE500941FE8 /* ServerChecker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ServerChecker.m; sourceTree = "<group>"; };
+		5E525AF921C7F69C00720E9F /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		5EF31BF321B8123E00D2A06F /* Server Status.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Server Status.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EF31BF621B8123E00D2A06F /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		5EF31BF721B8123E00D2A06F /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -68,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5E525AFA21C7F69C00720E9F /* UserNotifications.framework in Frameworks */,
 				5E1EC21921BBC3FA00EBCF62 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -92,6 +95,7 @@
 		5E1EC21721BBC3FA00EBCF62 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				5E525AF921C7F69C00720E9F /* UserNotifications.framework */,
 				5E1EC21821BBC3FA00EBCF62 /* WebKit.framework */,
 			);
 			name = Frameworks;
@@ -472,7 +476,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "net.dgkim.Server-Status";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -489,7 +493,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "net.dgkim.Server-Status";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
