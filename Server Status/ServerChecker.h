@@ -7,14 +7,18 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import <UserNotifications/UserNotifications.h>
 #import "Server_Status+CoreDataModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void (^ResponseBlock)(Server *server);
+typedef void (^ResponseBlock)(NSUInteger index, NSString *status);
 
-@interface ServerChecker : NSObject {
-    //Server *_server;
+@interface ServerChecker : NSObject <UNUserNotificationCenterDelegate> {
+    NSUInteger index;
+    NSString *statusUrl;
+    NSString *status;
     
     NSMutableData *responseData;
     NSString *serverDateTime;
@@ -22,9 +26,10 @@ typedef void (^ResponseBlock)(Server *server);
     ResponseBlock responseBlock;
 }
 
-@property (nonatomic, strong) Server *server;
+//@property (nonatomic, strong) Server *server;
 
-- (id)initWithServer:(Server *)server;
+- (id)initWithIndex:(NSUInteger)paramIdx
+             andUrl:(NSString *)checkUrl;
 
 - (void)statusCheck:(ResponseBlock)handler;
 

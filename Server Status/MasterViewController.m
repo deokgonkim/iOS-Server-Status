@@ -181,47 +181,38 @@
 
 - (void)refreshTable {
     
+    self.refreshCount = 0;
+    
     NSArray *objects = [self.fetchedResultsController fetchedObjects];
     
-    for (NSUInteger i = 0; i < objects.count; i++) {
-        Server* server = [objects objectAtIndex:i];
-        NSLog([NSString stringWithFormat:@"Checking %@ - %@", server.name, server.statusUrl]);
-        
-        ServerChecker *checker = [[ServerChecker alloc] initWithServer:server];
-        
-        [checker statusCheck:^(Server * _Nonnull server) {
-            NSLog([NSString stringWithFormat:@"Status checked - %@ - %@", server.name, server.statusUrl]);
-            [self.tableView reloadData];
-        }];
-    }
-    
-    [self registerLocalNotification];
-    
-    [refreshControl endRefreshing];
-}
-
-- (void)registerLocalNotification {
-    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
-    content.title = @"Notification title";
-    content.body = @"Notification body";
-    content.sound = [UNNotificationSound defaultSound];
-    
-    // 4. update application icon badge number
-    content.badge = [NSNumber numberWithInteger:([UIApplication sharedApplication].applicationIconBadgeNumber + 1)];
-    // Deliver the notification in five seconds.
-    UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger
-                                                  triggerWithTimeInterval:10.f
-                                                  repeats:NO];
-    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:@"TenSecond"
-                                                                          content:content
-                                                                          trigger:trigger];
-    /// 3. schedule localNotification
-    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
-    [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
-        if (!error) {
-            NSLog(@"add NotificationRequest succeeded!");
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0), ^{
+        for (NSUInteger i = 0; i < objects.count; i++) {
+            Server* server = [objects objectAtIndex:i];
+            NSLog([NSString stringWithFormat:@"Checking %@ - %@", server.name, server.statusUrl]);
+            
+            ServerChecker *checker = [[ServerChecker alloc] initWithIndex:i andUrl:server.statusUrl];
+            
+            [checker statusCheck:^(NSUInteger index, NSString * _Nonnull status) {
+                NSLog([NSString stringWithFormat:@"Status checked - %ul - %@", index, status]);
+                self.refreshCount += 1;
+                
+                [[objects objectAtIndex:index] setValue:status forKey:@"status"];
+                //server.status = status;
+                
+                if (self.refreshCount == [objects count]) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        // 이 블럭은 메인스레드(UI)에서 실행된다.
+                        NSLog(@"Done reloading");
+                        [self.refreshControl endRefreshing];
+                    });
+                }
+            }];
         }
-    }];
+        
+        
+    });
+    
+    //[refreshControl endRefreshing];
 }
 
 #pragma mark - Segues

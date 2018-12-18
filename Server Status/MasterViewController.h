@@ -19,7 +19,7 @@
     NSMutableData *_responseData;
 }
 
-
+@property NSInteger refreshCount;
 
 @property (strong, nonatomic) DetailViewController *detailViewController;
 

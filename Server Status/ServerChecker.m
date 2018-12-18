@@ -10,10 +10,22 @@
 
 @implementation ServerChecker
 
+/*
 - (id)initWithServer: (Server *)server {
     self = [super init];
     if (self != nil) {
         _server = server;
+    }
+    
+    return self;
+}
+ */
+
+- (id)initWithIndex:(NSUInteger)paramIdx andUrl:(NSString *)checkUrl {
+    self = [super init];
+    if (self != nil) {
+        index = paramIdx;
+        statusUrl = checkUrl;
     }
     
     return self;
@@ -24,69 +36,76 @@
     responseBlock = handler;
     
     // Create the request.
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:_server.statusUrl]];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:statusUrl]];
     
     // Create url connection and fire request
-    NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    //NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *task = [session dataTaskWithRequest:request
+                                            completionHandler:
+                                  ^(NSData *data, NSURLResponse *response, NSError *error) {
+                                      //NSLog(@"data - %@ - %@", data, response);
+                                      
+                                      NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+                                      
+                                      NSInteger statusCode = [httpResponse statusCode];
+                                      
+                                      NSDictionary *headers = [httpResponse allHeaderFields];
+                                      
+                                      if (statusCode != 200) {
+                                          status = [NSString stringWithFormat:@"Error %ld", statusCode];
+                                      } else {
+                                          status = [NSString stringWithFormat:@"Ok - %@", [headers objectForKey:@"Date"]];
+                                      }
+                                      
+                                      
+                                      if (responseBlock) {
+                                          responseBlock(index, status);
+                                          [self registerLocalNotification];
+                                          responseBlock = nil;
+                                      }
+                                  }];
+    
+    [task resume];
 }
 
-#pragma mark -
-#pragma mark NSURLConnectionDelegate Methods
-//------------------------------------------------------------------------------
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    // A response has been received, this is where we initialize the instance var you created
-    // so that we can append data to it in the didReceiveData method
-    // Furthermore, this method is called each time there is a redirect so reinitializing it
-    // also serves to clear it
-    responseData = [[NSMutableData alloc] init];
+- (void)registerLocalNotification {
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = @"Server Status";
+    content.body = [NSString stringWithFormat:@"%ul - %@", index, status];
+    content.sound = [UNNotificationSound defaultSound];
     
-    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+    // 4. update application icon badge number
+    //content.badge = [NSNumber numberWithInteger:([UIApplication sharedApplication].applicationIconBadgeNumber + 1)];
     
-    NSInteger statusCode = [httpResponse statusCode];
+    // Deliver the notification in five seconds.
+    UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger
+                                                  triggerWithTimeInterval:1.f
+                                                  repeats:NO];
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:[NSString stringWithFormat:@"Server%ul", index]
+                                                                          content:content
+                                                                          trigger:trigger];
     
-    NSDictionary *headers = [httpResponse allHeaderFields];
-    
-    if (statusCode != 200) {
-        _server.status = [NSString stringWithFormat:@"Error %ld", statusCode];
-    } else {
-        _server.status = [NSString stringWithFormat:@"Ok - %@", [headers objectForKey:@"Date"]];
-    }
+    /// 3. schedule localNotification
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    NSLog([NSString stringWithFormat:@"Current delegate : %@", center.delegate]);
+    [center setDelegate:self];
+    NSLog([NSString stringWithFormat:@"New delegate : %@", center.delegate]);
+    [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+        if (!error) {
+            NSLog(@"add NotificationRequest succeeded!");
+        }
+    }];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    // Append the new data to the instance variable you declared
-    
-    NSLog(@"Response received for URL : %@", [[connection currentRequest] URL]);
-    
-    NSString* requestedUrl = [[connection currentRequest] URL].absoluteString;
-    
-    /*
-    if (![_server.status containsString:@"Error"]) {
-        _server.status = @"Ok";
-    }
-     */
-    
-    if (responseBlock) {
-        responseBlock(_server);
-        responseBlock = nil;
-    }
-}
-
-- (NSCachedURLResponse *)connection:(NSURLConnection *)connection
-                  willCacheResponse:(NSCachedURLResponse*)cachedResponse {
-    // Return nil to indicate not necessary to store a cached response for this connection
-    return nil;
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    // The request is complete and data has been received
-    // You can parse the stuff in your instance variable now
-    
-}
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    // The request has failed for some reason!
-    // Check the error var
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       willPresentNotification:(UNNotification *)notification
+         withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler {
+    // Update the app interface directly.
+    NSLog(@"Entered willPresentNotification");
+    // Play a sound.
+    completionHandler(UNNotificationPresentationOptionSound|UNNotificationPresentationOptionAlert);
 }
 
 @end
